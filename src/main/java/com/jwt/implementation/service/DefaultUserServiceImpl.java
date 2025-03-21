@@ -5,6 +5,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 
+import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -15,7 +16,7 @@ import org.springframework.stereotype.Service;
 
 import com.jwt.implementation.model.Role;
 import com.jwt.implementation.model.User;
-import com.jwt.implementation.model.UserDTO;
+import com.jwt.implementation.DTO.UserDTO;
 import com.jwt.implementation.repository.RoleRepository;
 import com.jwt.implementation.repository.UserRepository;
 
@@ -40,20 +41,33 @@ public class DefaultUserServiceImpl implements DefaultUserService{
 		return roles.stream().map(role -> new SimpleGrantedAuthority(role.getRole())).collect(Collectors.toList());
 	}
 
+	@Transactional
 	@Override
 	public User save(UserDTO userRegisteredDTO) {
-		Role role = new Role();
-		System.out.println(userRegisteredDTO.getRole());
-		if(userRegisteredDTO.getRole().equals("USER"))
-			role = roleRepo.findByRole("ROLE_USER");
-		else if(userRegisteredDTO.getRole().equals("ADMIN"))
-			role = roleRepo.findByRole("ROLE_ADMIN");
+		System.out.println("Registering User with Role: " + userRegisteredDTO.getRole());
+		System.out.println(userRegisteredDTO);
+		// Validate role input
+		String roleName = userRegisteredDTO.getRole().equals("ADMIN") ? "ROLE_ADMIN" : "ROLE_USER";
+
+		// Find existing role or create a new one
+		Role role = roleRepo.findByRole(roleName);
+		if (role == null) {
+			role = new Role(roleName);
+			role = roleRepo.save(role);  // Save role and persist it
+		}
+
+		// Create and save the user
 		User user = new User();
 		user.setEmail(userRegisteredDTO.getEmail());
 		user.setUserName(userRegisteredDTO.getUserName());
 		user.setPassword(passwordEncoder.encode(userRegisteredDTO.getPassword()));
-		user.setRole(role);
+		user.setRole(role);  // Assign the role
 
-		return userRepo.save(user);
+		User savedUser = userRepo.save(user);
+		System.out.println("User Registered Successfully with ID: " + savedUser.getId());
+
+		return savedUser;
 	}
+
+
 }

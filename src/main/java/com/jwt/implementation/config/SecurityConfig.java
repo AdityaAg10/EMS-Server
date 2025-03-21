@@ -3,31 +3,35 @@ package com.jwt.implementation.config;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
-import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
-
-
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+import org.springframework.web.filter.CorsFilter;
 import com.jwt.implementation.service.DefaultUserService;
-import org.springframework.web.servlet.config.annotation.CorsRegistry;
-import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
+import com.jwt.implementation.config.JwtFilter;
+import java.util.List;
 
 @Configuration
 @EnableWebSecurity
-@EnableGlobalMethodSecurity(prePostEnabled = true)
+@EnableMethodSecurity
 public class SecurityConfig {
 
 	@Autowired
-	DefaultUserService userDetailsService;
-	
-	
+	private DefaultUserService userDetailsService;
+
+	@Autowired
+	private JwtFilter jwtFilter;
+
 	@Bean
 	public BCryptPasswordEncoder passwordEncoder() {
 		return new BCryptPasswordEncoder();
@@ -48,40 +52,34 @@ public class SecurityConfig {
 	}
 
 	@Bean
-	public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+	public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
 		http
-				.cors().and().csrf().disable()
-				.authorizeRequests()
-				.antMatchers("/registration","/genToken").permitAll()
-				.antMatchers("/welcomeUser").hasAuthority("ROLE_USER")
-				.antMatchers("/welcomeAdmin").hasAuthority("ROLE_ADMIN")
-				.anyRequest()
-				.authenticated().and().sessionManagement()
-                .sessionCreationPolicy(SessionCreationPolicy.STATELESS);
-		 http.addFilterBefore(authenticationTokenFilterBean(), UsernamePasswordAuthenticationFilter.class);
+				.csrf(csrf -> csrf.disable()) // Disabling CSRF
+				.authorizeHttpRequests(auth -> auth
+						.requestMatchers("/registration", "/genToken").permitAll()
+						.requestMatchers("/welcomeUser").hasAuthority("ROLE_USER")
+						.requestMatchers("/welcomeAdmin").hasAuthority("ROLE_ADMIN")
+						.requestMatchers(HttpMethod.DELETE, "/events/**").hasAnyAuthority("ROLE_ADMIN", "ROLE_HOST", "ROLE_USER")
+						.anyRequest().authenticated()
+				)
+				.sessionManagement(session -> session
+						.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+				)
+				.addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
+
 		return http.build();
-
 	}
 
+	// ✅ Proper CORS configuration (Replaces deprecated cors())
 	@Bean
-	public WebMvcConfigurer corsConfigurer() {
-		return new WebMvcConfigurer() {
-
-			@Override
-			public void addCorsMappings(CorsRegistry registry) {
-				registry.addMapping("/**")
-						.allowedOrigins("http://localhost:3000")
-						.allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
-						.allowedHeaders("*")
-						.allowCredentials(true);
-			}
-		};
+	public CorsFilter corsFilter() {
+		UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+		CorsConfiguration config = new CorsConfiguration();
+		config.setAllowCredentials(true);
+		config.setAllowedOrigins(List.of("http://localhost:3000")); // Adjust if needed
+		config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+		config.setAllowedHeaders(List.of("*"));
+		source.registerCorsConfiguration("/**", config);
+		return new CorsFilter(source);
 	}
-
-
-
-	@Bean
-    public JwtFilter authenticationTokenFilterBean() throws Exception {
-        return new JwtFilter();
-    }
 }

@@ -1,24 +1,22 @@
 package com.jwt.implementation.model;
 
+
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import jakarta.persistence.*;
+
 import java.util.HashSet;
 import java.util.Set;
 
-import javax.persistence.Entity;
-import javax.persistence.FetchType;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
-import javax.persistence.JoinColumn;
-import javax.persistence.JoinTable;
-import javax.persistence.ManyToMany;
-import javax.persistence.Table;
+
 
 @Entity
-@Table(name= "User")
+@Table(name= "users")
 public class User {
 	@Id
-	@GeneratedValue(strategy = GenerationType.AUTO)
-	private int id;
+	@GeneratedValue(strategy = GenerationType.IDENTITY) // AUTO-INCREMENT
+	private Long id;
+
 	private String userName;
 	private String password;
 	private String email;
@@ -27,11 +25,31 @@ public class User {
 	@JoinTable(name = "users_role", joinColumns = @JoinColumn(name = "cust_id", referencedColumnName = "id"),
 			inverseJoinColumns = @JoinColumn(name = "role_id", referencedColumnName = "id") )
 	Set<Role> roles = new HashSet<Role>();
-	public int getId() {
-		return id;
+
+	@JsonBackReference
+	@JsonIgnore // prevents from reaching infinite recursion when being called in both event and user
+	@ManyToMany(mappedBy = "hosts", fetch = FetchType.LAZY)
+	private Set<Event> hostedEvents = new HashSet<>();
+
+
+
+	public void setRoles(Set<Role> roles) {
+		this.roles = roles;
 	}
-	public void setId(int id) {
+
+	public Set<Event> getHostedEvents() {
+		return hostedEvents;
+	}
+
+	public void setHostedEvents(Set<Event> hostedEvents) {
+		this.hostedEvents = hostedEvents;
+	}
+
+	public void setId(Long id) {
 		this.id = id;
+	}
+	public Long getId() {
+		return id;
 	}
 	public String getUserName() {
 		return userName;

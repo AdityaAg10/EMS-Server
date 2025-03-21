@@ -3,8 +3,6 @@ package com.jwt.implementation.controller;
 import java.util.HashMap;
 import java.util.Map;
 
-import javax.annotation.security.RolesAllowed;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -21,7 +19,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.jwt.implementation.config.JwtGeneratorValidator;
 import com.jwt.implementation.model.User;
-import com.jwt.implementation.model.UserDTO;
+import com.jwt.implementation.DTO.UserDTO;
 import com.jwt.implementation.repository.UserRepository;
 import com.jwt.implementation.service.DefaultUserService;
 
@@ -47,9 +45,9 @@ public class RestAppController {
 	public ResponseEntity<Object> registerUser(@RequestBody UserDTO userDto) {
 		User users =  userService.save(userDto);
 		if (users.equals(null))
-			return generateRespose("Not able to save user ", HttpStatus.BAD_REQUEST, userDto);
+			return generateResponse("Not able to save user ", HttpStatus.BAD_REQUEST, userDto);
 		else
-			return generateRespose("User saved successfully : " + users.getId(), HttpStatus.OK, users);
+			return generateResponse("User saved successfully : " + users.getId(), HttpStatus.OK, users);
 	}
 
 	@PostMapping("/genToken")
@@ -77,10 +75,10 @@ public class RestAppController {
 
 	
 	
-	public ResponseEntity<Object> generateRespose(String message, HttpStatus st, Object responseobj) {
+	public ResponseEntity<Object> generateResponse(String message, HttpStatus st, Object responseobj) {
 
 		Map<String, Object> map = new HashMap<String, Object>();
-		map.put("meaasge", message);
+		map.put("message", message);
 		map.put("Status", st.value());
 		map.put("data", responseobj);
 
