@@ -1,5 +1,6 @@
 package com.jwt.implementation.controller;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -8,6 +9,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.authentication.DisabledException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -34,10 +37,10 @@ public class RestAppController {
 
 	@Autowired
 	JwtGeneratorValidator jwtGenVal;
-	
+
 	@Autowired
 	BCryptPasswordEncoder bcCryptPasswordEncoder;
-	
+
 	@Autowired
 	DefaultUserService userService;
 
@@ -51,16 +54,24 @@ public class RestAppController {
 	}
 
 	@PostMapping("/genToken")
-	public String generateJwtToken(@RequestBody UserDTO userDto) throws Exception {
-		
+	public ResponseEntity<?> generateJwtToken(@RequestBody UserDTO userDto) {
+		try {
 			Authentication authentication = authManager.authenticate(
 					new UsernamePasswordAuthenticationToken(userDto.getUserName(), userDto.getPassword()));
 			SecurityContextHolder.getContext().setAuthentication(authentication);
-		
-		return jwtGenVal.generateToken(authentication);
+
+			String token = jwtGenVal.generateToken(authentication);
+			return ResponseEntity.ok(Collections.singletonMap("token", token));
+		} catch (BadCredentialsException e) {
+			return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Collections.singletonMap("error", "Invalid username or password"));
+		} catch (DisabledException e) {
+			return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Collections.singletonMap("error", "User account is disabled"));
+		} catch (Exception e) {
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Collections.singletonMap("error", "An unexpected error occurred"));
+		}
 	}
 
-	
+
 	@GetMapping("/welcomeAdmin")
 	@PreAuthorize("hasAuthority('ROLE_ADMIN')")
 	public String welcome() {
@@ -73,8 +84,8 @@ public class RestAppController {
 		return "WelcomeUSER";
 	}
 
-	
-	
+
+
 	public ResponseEntity<Object> generateResponse(String message, HttpStatus st, Object responseobj) {
 
 		Map<String, Object> map = new HashMap<String, Object>();
