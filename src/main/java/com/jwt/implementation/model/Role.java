@@ -1,18 +1,15 @@
 package com.jwt.implementation.model;
 
-import jakarta.persistence.*;
+import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.mapping.Document;
 
-@Entity
-@Table(name="role")
+@Document(collection = "roles")  // MongoDB equivalent of @Entity
 public class Role {
 
 	@Id
-	@GeneratedValue(strategy = GenerationType.AUTO)
-	private int id;
+	private String id;  // MongoDB uses String IDs
 
 	private String role;
-
-
 
 	public Role() {
 		super();
@@ -23,11 +20,11 @@ public class Role {
 		this.role = role;
 	}
 
-	public int getId() {
+	public String getId() {
 		return id;
 	}
 
-	public void setId(int id) {
+	public void setId(String id) {
 		this.id = id;
 	}
 
@@ -38,7 +35,4 @@ public class Role {
 	public void setRole(String role) {
 		this.role = role;
 	}
-
-
-
 }

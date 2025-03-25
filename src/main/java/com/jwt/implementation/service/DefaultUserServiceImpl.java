@@ -5,7 +5,6 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 
-import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -41,13 +40,16 @@ public class DefaultUserServiceImpl implements DefaultUserService{
 		return roles.stream().map(role -> new SimpleGrantedAuthority(role.getRole())).collect(Collectors.toList());
 	}
 
-	@Transactional
+
 	@Override
 	public User save(UserDTO userRegisteredDTO) {
-		System.out.println("Registering User with Role: " + userRegisteredDTO.getRole());
-		System.out.println(userRegisteredDTO);
+		// Check if the user already exists
+		if (userRepo.findByUserName(userRegisteredDTO.getUserName()) != null) {
+			throw new IllegalArgumentException("User already exists with username: " + userRegisteredDTO.getUserName());
+		}
+
 		// Validate role input
-		String roleName = userRegisteredDTO.getRole().equals("ADMIN") ? "ROLE_ADMIN" : "ROLE_USER";
+		String roleName = userRegisteredDTO.getRole().equalsIgnoreCase("ADMIN") ? "ROLE_ADMIN" : "ROLE_USER";
 
 		// Find existing role or create a new one
 		Role role = roleRepo.findByRole(roleName);
@@ -63,11 +65,9 @@ public class DefaultUserServiceImpl implements DefaultUserService{
 		user.setPassword(passwordEncoder.encode(userRegisteredDTO.getPassword()));
 		user.setRole(role);  // Assign the role
 
-		User savedUser = userRepo.save(user);
-		System.out.println("User Registered Successfully with ID: " + savedUser.getId());
-
-		return savedUser;
+		return userRepo.save(user);
 	}
+
 
 
 }

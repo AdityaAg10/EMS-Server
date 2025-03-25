@@ -1,10 +1,8 @@
 package com.jwt.implementation.repository;
 
-import org.springframework.data.jpa.repository.JpaRepository;
-
 import com.jwt.implementation.model.Role;
+import org.springframework.data.mongodb.repository.MongoRepository;
 
-public interface RoleRepository extends JpaRepository<Role, Integer> {
+public interface RoleRepository extends MongoRepository<Role, String> {
 	Role findByRole(String role);
-
 }

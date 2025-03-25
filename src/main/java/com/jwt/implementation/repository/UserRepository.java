@@ -1,15 +1,14 @@
 package com.jwt.implementation.repository;
 
-import org.springframework.data.jpa.repository.JpaRepository;
-
 import com.jwt.implementation.model.User;
-import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.mongodb.repository.MongoRepository;
+import org.springframework.data.mongodb.repository.Query;
 
 import java.util.List;
 
-public interface UserRepository extends JpaRepository<User, Long>{
+public interface UserRepository extends MongoRepository<User, String> {
 	User findByUserName(String username);
 
-	@Query("SELECT u FROM User u WHERE u.userName IN :usernames")
+	@Query("{ 'userName' : { $in: ?0 } }")
 	List<User> findByUserNameIn(List<String> usernames);
 }
