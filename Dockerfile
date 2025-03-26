@@ -1,20 +1,14 @@
-# Use a base image that includes JDK + Maven
-FROM maven:3.9.6-eclipse-temurin-21 AS build
+# Use OpenJDK 21 as the base image
+FROM openjdk:21-jdk-slim
 
+# Set working directory
 WORKDIR /app
 
-COPY pom.xml .
-COPY src ./src
+# Copy the JAR file into the container
+COPY target/*.jar app.jar
 
-RUN mvn clean package -DskipTests
-
-# Use a minimal JRE image for runtime
-FROM eclipse-temurin:21-jre-ubi9-minimal
-
-WORKDIR /app
-
-COPY --from=build /app/target/*.jar app.jar
-
+# Expose the application port
 EXPOSE 8080
 
+# Command to run the application
 ENTRYPOINT ["java", "-jar", "app.jar"]

@@ -64,6 +64,7 @@ public class EventServiceImpl implements EventService {
                 eventDTO.getDescription(),
                 eventDTO.getDate(),
                 eventDTO.getLocation(),
+                eventDTO.getFee(),
                 hosts,
                 participants);
 
@@ -130,6 +131,16 @@ public class EventServiceImpl implements EventService {
         if (updates.containsKey("location")) {
             event.setLocation((String) updates.get("location"));
         }
+        if (updates.containsKey("fee")) {
+            Object feeValue = updates.get("fee");
+            try {
+                event.setFee(Double.parseDouble(feeValue.toString())); // Convert any type to Double
+            } catch (NumberFormatException e) {
+                throw new RuntimeException("Invalid fee value type: " + feeValue);
+            }
+        }
+
+
         return eventRepo.save(event);
     }
 

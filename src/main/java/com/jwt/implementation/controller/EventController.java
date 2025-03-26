@@ -30,12 +30,14 @@ public class EventController {
         Event createdEvent = eventService.createEvent(eventDTO, username);
 
         EventDTO responseDTO = new EventDTO(
+                createdEvent.getId(),
                 createdEvent.getTitle(),
                 createdEvent.getDescription(),
                 createdEvent.getDate(),
                 createdEvent.getLocation(),
-                createdEvent.getParticipants().stream().map(User::getUserName).collect(Collectors.toList()) // Send only
-                                                                                                            // usernames
+                createdEvent.getFee(), // Include fee
+                createdEvent.getParticipants().stream().map(User::getUserName).collect(Collectors.toList()),
+                createdEvent.getHosts().stream().map(User::getUserName).collect(Collectors.toSet())
         );
 
         return new ResponseEntity<>(responseDTO, HttpStatus.CREATED);
@@ -46,14 +48,14 @@ public class EventController {
         List<Event> events = eventService.getAllEvents();
 
         List<EventDTO> eventDTOs = events.stream().map(event -> new EventDTO(
-                event.getId(),
-                event.getTitle(),
-                event.getDescription(),
-                event.getDate(),
-                event.getLocation(),
-                event.getParticipants().stream().map(User::getUserName).collect(Collectors.toList()), // Send only
-                                                                                                      // usernames
-                event.getHosts().stream().map(User::getUserName).collect(Collectors.toSet())))
+                        event.getId(),
+                        event.getTitle(),
+                        event.getDescription(),
+                        event.getDate(),
+                        event.getLocation(),
+                        event.getFee(), // Include fee
+                        event.getParticipants().stream().map(User::getUserName).collect(Collectors.toList()),
+                        event.getHosts().stream().map(User::getUserName).collect(Collectors.toSet())))
                 .collect(Collectors.toList());
 
         return ResponseEntity.ok(eventDTOs);
@@ -73,6 +75,7 @@ public class EventController {
                 event.getDescription(),
                 event.getDate(),
                 event.getLocation(),
+                event.getFee(), // Include fee
                 event.getParticipants().stream().map(User::getUserName).collect(Collectors.toList()),
                 event.getHosts().stream().map(User::getUserName).collect(Collectors.toSet()));
 
@@ -84,13 +87,14 @@ public class EventController {
         String username = SecurityContextHolder.getContext().getAuthentication().getName();
         List<Event> events = eventService.gethostedByMeEvents(username);
         List<EventDTO> eventDTOs = events.stream().map(event -> new EventDTO(
-                event.getId(),
-                event.getTitle(),
-                event.getDescription(),
-                event.getDate(),
-                event.getLocation(),
-                event.getParticipants().stream().map(User::getUserName).collect(Collectors.toList()),
-                event.getHosts().stream().map(User::getUserName).collect(Collectors.toSet())))
+                        event.getId(),
+                        event.getTitle(),
+                        event.getDescription(),
+                        event.getDate(),
+                        event.getLocation(),
+                        event.getFee(), // Include fee
+                        event.getParticipants().stream().map(User::getUserName).collect(Collectors.toList()),
+                        event.getHosts().stream().map(User::getUserName).collect(Collectors.toSet())))
                 .collect(Collectors.toList());
 
         return ResponseEntity.ok(eventDTOs);
@@ -102,13 +106,14 @@ public class EventController {
         List<Event> events = eventService.hostedByOthersEvents(username);
 
         List<EventDTO> eventDTOs = events.stream().map(event -> new EventDTO(
-                event.getId(),
-                event.getTitle(),
-                event.getDescription(),
-                event.getDate(),
-                event.getLocation(),
-                event.getParticipants().stream().map(User::getUserName).collect(Collectors.toList()),
-                event.getHosts().stream().map(User::getUserName).collect(Collectors.toSet())))
+                        event.getId(),
+                        event.getTitle(),
+                        event.getDescription(),
+                        event.getDate(),
+                        event.getLocation(),
+                        event.getFee(), // Include fee
+                        event.getParticipants().stream().map(User::getUserName).collect(Collectors.toList()),
+                        event.getHosts().stream().map(User::getUserName).collect(Collectors.toSet())))
                 .collect(Collectors.toList());
 
         return ResponseEntity.ok(eventDTOs);
@@ -124,7 +129,6 @@ public class EventController {
         return ResponseEntity.ok(updatedEvent);
     }
 
-    // @Transactional
     @PutMapping("/addhosts/{eventId}")
     public ResponseEntity<String> addEventHosts(
             @PathVariable String eventId,
@@ -186,8 +190,6 @@ public class EventController {
         }
     }
 
-
-
     @DeleteMapping("/{eventId}")
     public ResponseEntity<Object> deleteEvent(@PathVariable String eventId, Principal principal) {
         try {
@@ -201,13 +203,11 @@ public class EventController {
     }
 
     public ResponseEntity<Object> generateResponse(String message, HttpStatus st, Object responseobj) {
-
-        Map<String, Object> map = new HashMap<String, Object>();
+        Map<String, Object> map = new HashMap<>();
         map.put("message", message);
         map.put("Status", st.value());
         map.put("data", responseobj);
 
-        return new ResponseEntity<Object>(map, st);
+        return new ResponseEntity<>(map, st);
     }
-
 }
