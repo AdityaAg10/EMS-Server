@@ -17,13 +17,16 @@ public class User {
 	private String id; // MongoDB ObjectId as String
 
 	private String userName;
+
+	@JsonIgnore
 	private String password;
 	private String email;
 
+	@JsonIgnore
 	@DBRef
 	private Set<Role> roles = new HashSet<>();
 
-	@JsonBackReference
+
 	@JsonIgnore
 	@DBRef
 	private Set<Event> hostedEvents = new HashSet<>();

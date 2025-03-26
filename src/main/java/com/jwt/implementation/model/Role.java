@@ -1,5 +1,6 @@
 package com.jwt.implementation.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
@@ -9,6 +10,7 @@ public class Role {
 	@Id
 	private String id;  // MongoDB uses String IDs
 
+	@JsonIgnore
 	private String role;
 
 	public Role() {

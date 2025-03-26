@@ -62,6 +62,7 @@ public class SecurityConfig {
 						.requestMatchers("/events/allEvents").permitAll()
 						.requestMatchers("/welcomeUser").hasAuthority("ROLE_USER")
 						.requestMatchers("/welcomeAdmin").hasAuthority("ROLE_ADMIN")
+						.requestMatchers("/expenses/**", "/expense-items/**").hasAnyAuthority("ROLE_ADMIN", "ROLE_HOST", "ROLE_USER")
 						.requestMatchers(HttpMethod.DELETE, "/events/**").hasAnyAuthority("ROLE_ADMIN", "ROLE_HOST", "ROLE_USER")
 						.anyRequest().authenticated()
 				)
