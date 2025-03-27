@@ -1,6 +1,7 @@
 package com.jwt.implementation.repository;
 
 import com.jwt.implementation.model.Event;
+import com.jwt.implementation.model.User;
 import org.springframework.data.mongodb.repository.MongoRepository;
 import org.springframework.stereotype.Repository;
 import org.springframework.data.mongodb.repository.Query;

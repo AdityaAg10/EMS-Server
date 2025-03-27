@@ -58,7 +58,7 @@ public class SecurityConfig {
 				.cors(cors -> cors.configurationSource(corsConfigurationSource())) // ✅ CORS must be first
 				.csrf(csrf -> csrf.disable()) // ✅ Disable CSRF only after CORS
 				.authorizeHttpRequests(auth -> auth
-						.requestMatchers("/registration", "/genToken").permitAll()
+						.requestMatchers("/registration", "/genToken", "/users/**").permitAll()
 						.requestMatchers("/events/allEvents").permitAll()
 						.requestMatchers("/welcomeUser").hasAuthority("ROLE_USER")
 						.requestMatchers("/welcomeAdmin").hasAuthority("ROLE_ADMIN")

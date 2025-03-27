@@ -11,4 +11,14 @@ public interface UserService {
     String leaveEvent(String eventId, String participantUsername);
 
     List<User> getAllUsers();
+
+    User getUserByUsername(String username);
+
+    User getUserById(String userId);
+
+    User updateUser(String username, User updatedUser);
+
+    String updatePassword(String username, String oldPassword, String newPassword);
+
+    String deleteUser(String userId);
 }
